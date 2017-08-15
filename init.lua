@@ -62,31 +62,32 @@ unifieddyes.HUES = {
 
 -- the names of the various colors here came from http://www.procato.com/rgb+index/
 
+-- last entry: does this color exist only in HUES_EXTENDED and not in HUES as well?
 unifieddyes.HUES_EXTENDED = {
-	{ "red",        0xff, 0x00, 0x00 },
-	{ "vermilion",  0xff, 0x40, 0x00 },
-	{ "orange",     0xff, 0x80, 0x00 },
-	{ "amber",      0xff, 0xbf, 0x00 },
-	{ "yellow",     0xff, 0xff, 0x00 },
-	{ "lime",       0xbf, 0xff, 0x00 },
-	{ "chartreuse", 0x80, 0xff, 0x00 },
-	{ "harlequin",  0x40, 0xff, 0x00 },
-	{ "green",      0x00, 0xff, 0x00 },
-	{ "malachite",  0x00, 0xff, 0x40 },
-	{ "spring",     0x00, 0xff, 0x80 },
-	{ "turquoise",  0x00, 0xff, 0xbf },
-	{ "cyan",       0x00, 0xff, 0xff },
-	{ "cerulean",   0x00, 0xbf, 0xff },
-	{ "azure",      0x00, 0x80, 0xff },
-	{ "sapphire",   0x00, 0x40, 0xff },
-	{ "blue",       0x00, 0x00, 0xff },
-	{ "indigo",     0x40, 0x00, 0xff },
-	{ "violet",     0x80, 0x00, 0xff },
-	{ "mulberry",   0xbf, 0x00, 0xff },
-	{ "magenta",    0xff, 0x00, 0xff },
-	{ "fuchsia",    0xff, 0x00, 0xbf },
-	{ "rose",       0xff, 0x00, 0x80 },
-	{ "crimson",    0xff, 0x00, 0x40 }
+	{ "red",        0xff, 0x00, 0x00, false },
+	{ "vermilion",  0xff, 0x40, 0x00, true  },
+	{ "orange",     0xff, 0x80, 0x00, false },
+	{ "amber",      0xff, 0xbf, 0x00, true  },
+	{ "yellow",     0xff, 0xff, 0x00, false },
+	{ "lime",       0xbf, 0xff, 0x00, false },
+	{ "chartreuse", 0x80, 0xff, 0x00, true  },
+	{ "harlequin",  0x40, 0xff, 0x00, true  },
+	{ "green",      0x00, 0xff, 0x00, false },
+	{ "malachite",  0x00, 0xff, 0x40, true  },
+	{ "spring",     0x00, 0xff, 0x80, false },
+	{ "turquoise",  0x00, 0xff, 0xbf, true  },
+	{ "cyan",       0x00, 0xff, 0xff, false },
+	{ "cerulean",   0x00, 0xbf, 0xff, true  },
+	{ "azure",      0x00, 0x80, 0xff, false },
+	{ "sapphire",   0x00, 0x40, 0xff, true  },
+	{ "blue",       0x00, 0x00, 0xff, false },
+	{ "indigo",     0x40, 0x00, 0xff, true  },
+	{ "violet",     0x80, 0x00, 0xff, false },
+	{ "mulberry",   0xbf, 0x00, 0xff, true  },
+	{ "magenta",    0xff, 0x00, 0xff, false },
+	{ "fuchsia",    0xff, 0x00, 0xbf, true  },
+	{ "rose",       0xff, 0x00, 0x80, false },
+	{ "crimson",    0xff, 0x00, 0x40, true  }
 }
 
 unifieddyes.SATS = {
@@ -771,14 +772,43 @@ for hue = 0, 11 do
 	end
 end
 
--- Generate all dyes that are not part of the default minetest_game dyes mod
+-- tell the colormachine about hues, shades and supported shades
+if( colormachine and colormachine.dye_palette ) then
+	colormachine.dye_palette[ "unifieddyes_palette_extended.png" ] = {};
+	colormachine.dye_palette[ "unifieddyes_palette.png"          ] = {};
+	colormachine.dye_palette_colors[ "unifieddyes_palette_extended.png" ] = {};
+	colormachine.dye_palette_colors[ "unifieddyes_palette.png"          ] = {};
+	colormachine.dye_palette_shades[ "unifieddyes_palette_extended.png" ] = {};
+	colormachine.dye_palette_shades[ "unifieddyes_palette.png"          ] = {};
+	-- pattern: normal shade, medium saturation, next normal shade, next medium saturation etc.
+	colormachine.dye_palette_supported[ "unifieddyes_palette_extended.png" ] = {
+		1,0, 1,0, 1,0, 1,0, 1,1, 1,1, 1,1};
+	colormachine.dye_palette_supported[ "unifieddyes_palette.png"          ] = {
+		1,0, 1,0, 1,0};
 
-for _, h in ipairs(unifieddyes.HUES_EXTENDED) do
+	-- copy these values (just to be on the safe side); they are very small tables
+	for hue_nr, h in ipairs(unifieddyes.HUES_EXTENDED) do
+		table.insert( colormachine.dye_palette_colors[ "unifieddyes_palette_extended.png" ], h[1] );
+	end
+	for hue_nr, h in ipairs(unifieddyes.HUES) do
+		table.insert( colormachine.dye_palette_colors[ "unifieddyes_palette.png" ], h[1] );
+	end
+	for shade_nr, shade in ipairs(unifieddyes.VALS_EXTENDED) do
+		table.insert( colormachine.dye_palette_shades[ "unifieddyes_palette_extended.png" ], shade );
+	end
+	for shade_nr, shade in ipairs(unifieddyes.VALS) do
+		table.insert( colormachine.dye_palette_shades[ "unifieddyes_palette.png" ], shade );
+	end
+end
+
+-- Generate all dyes that are not part of the default minetest_game dyes mod
+for hue_nr, h in ipairs(unifieddyes.HUES_EXTENDED) do
 	local hue = h[1]
 	local r = h[2]
 	local g = h[3]
 	local b = h[4]
 
+        local shade_nr = 1;
 	for v = 0, 6 do
 		local val = unifieddyes.VALS_EXTENDED[v+1]
 
@@ -798,6 +828,18 @@ for _, h in ipairs(unifieddyes.HUES_EXTENDED) do
 		end
 
 		local color = string.format("%02x", r2)..string.format("%02x", g2)..string.format("%02x", b2)
+		if( colormachine and colormachine.dye_palette ) then
+			table.insert( colormachine.dye_palette[ "unifieddyes_palette_extended.png" ],
+				{ hue_nr, shade_nr, -1, "dye:"..val..hue,
+				  #colormachine.dye_palette[ "unifieddyes_palette_extended.png" ]+1,
+				  color });
+			if(not(h[5])) then -- if the color is not limited to the extended palette only
+				table.insert( colormachine.dye_palette[ "unifieddyes_palette.png" ],
+					{ hue_nr, shade_nr, -1, "dye:"..val..hue,
+					  #colormachine.dye_palette[ "unifieddyes_palette.png" ]+1,
+					  color });
+			end
+		end
 		if minetest.registered_items["dye:"..val..hue] then
 			minetest.override_item("dye:"..val..hue, {
 				inventory_image = "unifieddyes_dye.png^[colorize:#"..color..":200",
@@ -828,6 +870,18 @@ for _, h in ipairs(unifieddyes.HUES_EXTENDED) do
 			local b3 = math.floor(p+(b2-p)*0.5)
 
 			local color = string.format("%02x", r3)..string.format("%02x", g3)..string.format("%02x", b3)
+			if( colormachine and colormachine.dye_palette ) then
+				table.insert( colormachine.dye_palette[ "unifieddyes_palette_extended.png" ],
+					{ hue_nr, shade_nr+1,   -1, "dye:"..val..hue.."_s50",
+					  #colormachine.dye_palette[ "unifieddyes_palette_extended.png" ]+1,
+					  color });
+				if(not(h[5])) then -- if the color is not limited to the extended palette only
+					table.insert( colormachine.dye_palette[ "unifieddyes_palette.png" ],
+						{ hue_nr, shade_nr+1,   -1, "dye:"..val..hue.."_s50",
+						  #colormachine.dye_palette[ "unifieddyes_palette.png" ]+1,
+						  color });
+				end
+			end
 
 			minetest.register_craftitem(":dye:"..val..hue.."_s50", {
 				description = S(desc.." (low saturation)"),
@@ -837,6 +891,7 @@ for _, h in ipairs(unifieddyes.HUES_EXTENDED) do
 			})
 			minetest.register_alias("unifieddyes:"..val..hue.."_s50", "dye:"..val..hue.."_s50")
 		end
+		shade_nr = shade_nr+2;
 	end
 end
 
