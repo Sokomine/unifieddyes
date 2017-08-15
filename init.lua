@@ -62,32 +62,31 @@ unifieddyes.HUES = {
 
 -- the names of the various colors here came from http://www.procato.com/rgb+index/
 
--- last entry: does this color exist only in HUES_EXTENDED and not in HUES as well?
 unifieddyes.HUES_EXTENDED = {
-	{ "red",        0xff, 0x00, 0x00, false },
-	{ "vermilion",  0xff, 0x40, 0x00, true  },
-	{ "orange",     0xff, 0x80, 0x00, false },
-	{ "amber",      0xff, 0xbf, 0x00, true  },
-	{ "yellow",     0xff, 0xff, 0x00, false },
-	{ "lime",       0xbf, 0xff, 0x00, false },
-	{ "chartreuse", 0x80, 0xff, 0x00, true  },
-	{ "harlequin",  0x40, 0xff, 0x00, true  },
-	{ "green",      0x00, 0xff, 0x00, false },
-	{ "malachite",  0x00, 0xff, 0x40, true  },
-	{ "spring",     0x00, 0xff, 0x80, false },
-	{ "turquoise",  0x00, 0xff, 0xbf, true  },
-	{ "cyan",       0x00, 0xff, 0xff, false },
-	{ "cerulean",   0x00, 0xbf, 0xff, true  },
-	{ "azure",      0x00, 0x80, 0xff, false },
-	{ "sapphire",   0x00, 0x40, 0xff, true  },
-	{ "blue",       0x00, 0x00, 0xff, false },
-	{ "indigo",     0x40, 0x00, 0xff, true  },
-	{ "violet",     0x80, 0x00, 0xff, false },
-	{ "mulberry",   0xbf, 0x00, 0xff, true  },
-	{ "magenta",    0xff, 0x00, 0xff, false },
-	{ "fuchsia",    0xff, 0x00, 0xbf, true  },
-	{ "rose",       0xff, 0x00, 0x80, false },
-	{ "crimson",    0xff, 0x00, 0x40, true  }
+	{ "red",        0xff, 0x00, 0x00},
+	{ "vermilion",  0xff, 0x40, 0x00},
+	{ "orange",     0xff, 0x80, 0x00},
+	{ "amber",      0xff, 0xbf, 0x00},
+	{ "yellow",     0xff, 0xff, 0x00},
+	{ "lime",       0xbf, 0xff, 0x00},
+	{ "chartreuse", 0x80, 0xff, 0x00},
+	{ "harlequin",  0x40, 0xff, 0x00},
+	{ "green",      0x00, 0xff, 0x00},
+	{ "malachite",  0x00, 0xff, 0x40},
+	{ "spring",     0x00, 0xff, 0x80},
+	{ "turquoise",  0x00, 0xff, 0xbf},
+	{ "cyan",       0x00, 0xff, 0xff},
+	{ "cerulean",   0x00, 0xbf, 0xff},
+	{ "azure",      0x00, 0x80, 0xff},
+	{ "sapphire",   0x00, 0x40, 0xff},
+	{ "blue",       0x00, 0x00, 0xff},
+	{ "indigo",     0x40, 0x00, 0xff},
+	{ "violet",     0x80, 0x00, 0xff},
+	{ "mulberry",   0xbf, 0x00, 0xff},
+	{ "magenta",    0xff, 0x00, 0xff},
+	{ "fuchsia",    0xff, 0x00, 0xbf},
+	{ "rose",       0xff, 0x00, 0x80},
+	{ "crimson",    0xff, 0x00, 0x40}
 }
 
 unifieddyes.SATS = {
@@ -772,34 +771,62 @@ for hue = 0, 11 do
 	end
 end
 
+
+local colormachine_setup_palette = function( palette_name, colors, shades, greys, supported)
+	colormachine.dye_palette[            palette_name ] = {};
+	colormachine.dye_palette_colors[     palette_name ] = colors;
+	-- pattern: normal shade, medium saturation, next normal shade, next medium saturation etc.
+	colormachine.dye_palette_shades[     palette_name ] = shades;
+	colormachine.dye_palette_grey_names[ palette_name ] = greys;
+	colormachine.dye_palette_supported[  palette_name ] = supported;
+end
+
+local colormachine_add_unifieddyes_palette = function( color_name, c_nr )
+	local color_name_old = color_name;
+	if( color_name == "spring" ) then
+		color_name_old = "aqua";
+	elseif( color_name == "azure" ) then
+		color_name_old = "skyblue";
+	elseif( color_name == "rose") then
+		color_name_old = "redviolet";
+	end
+	local palette_name = "unifieddyes_palette_"..color_name_old.."s.png";
+	colormachine_setup_palette( palette_name,
+		unifieddyes.HUES,
+		{"light_", "", "medium_", "dark_"}, -- we need white + 7 shades here
+		{"white"},
+		{1,0, 1,1, 1,1, 1,1}); -- 7 actual shades
+	-- grey colors are slightly diffrent
+	if( color_name == "grey" ) then
+		colormachine.dye_palette_grey_names[ palette_name ] = {"white"}; -- more will follow
+		colormachine.dye_palette_supported[  palette_name ][2] = 1; -- 8 shades supported
+	end
+
+	-- the rest will be added once we know the color names and color strings
+	colormachine.dye_palette[ palette_name ] = {
+		{   -1,-1,  1, "dye:white", 0, "ffffff"}, -- 1
+	};
+end
+
+
 -- tell the colormachine about hues, shades and supported shades
 if( colormachine and colormachine.dye_palette ) then
-	colormachine.dye_palette[ "unifieddyes_palette_extended.png" ] = {};
-	colormachine.dye_palette[ "unifieddyes_palette.png"          ] = {};
-	colormachine.dye_palette_colors[ "unifieddyes_palette_extended.png" ] = {};
-	colormachine.dye_palette_colors[ "unifieddyes_palette.png"          ] = {};
-	colormachine.dye_palette_shades[ "unifieddyes_palette_extended.png" ] = {};
-	colormachine.dye_palette_shades[ "unifieddyes_palette.png"          ] = {};
-	-- pattern: normal shade, medium saturation, next normal shade, next medium saturation etc.
-	colormachine.dye_palette_supported[ "unifieddyes_palette_extended.png" ] = {
-		1,0, 1,0, 1,0, 1,0, 1,1, 1,1, 1,1};
-	colormachine.dye_palette_supported[ "unifieddyes_palette.png"          ] = {
-		1,0, 1,0, 1,0};
+	colormachine_setup_palette("unifieddyes_palette.png",
+		unifieddyes.HUES, unifieddyes.VALS, unifieddyes.GREYS, {1,0, 1,0, 1,0});
+	local greys = unifieddyes.GREYS; -- TODO: set to a fitting value
+	colormachine_setup_palette("unifieddyes_palette_extended.png",
+		unifieddyes.HUES_EXTENDED, unifieddyes.VALS_EXTENDED, greys, {1,0, 1,0, 1,0, 1,0, 1,1, 1,1, 1,1});
 
-	-- copy these values (just to be on the safe side); they are very small tables
-	for hue_nr, h in ipairs(unifieddyes.HUES_EXTENDED) do
-		table.insert( colormachine.dye_palette_colors[ "unifieddyes_palette_extended.png" ], h[1] );
+	-- add the 8-shades-one-color-palettes
+	for hue_nr, hue in ipairs(unifieddyes.HUES) do
+		colormachine_add_unifieddyes_palette( hue, hue_nr );
 	end
-	for hue_nr, h in ipairs(unifieddyes.HUES) do
-		table.insert( colormachine.dye_palette_colors[ "unifieddyes_palette.png" ], h[1] );
-	end
-	for shade_nr, shade in ipairs(unifieddyes.VALS_EXTENDED) do
-		table.insert( colormachine.dye_palette_shades[ "unifieddyes_palette_extended.png" ], shade );
-	end
-	for shade_nr, shade in ipairs(unifieddyes.VALS) do
-		table.insert( colormachine.dye_palette_shades[ "unifieddyes_palette.png" ], shade );
-	end
+	-- there is also one for grey values
+	colormachine_add_unifieddyes_palette( "grey", -1 );
 end
+-- stores for each dye name the associated color string
+-- (needed to create the other palettes)
+unifieddyes.color_string_lookup = {};
 
 -- Generate all dyes that are not part of the default minetest_game dyes mod
 for hue_nr, h in ipairs(unifieddyes.HUES_EXTENDED) do
@@ -833,12 +860,7 @@ for hue_nr, h in ipairs(unifieddyes.HUES_EXTENDED) do
 				{ hue_nr, shade_nr, -1, "dye:"..val..hue,
 				  #colormachine.dye_palette[ "unifieddyes_palette_extended.png" ]+1,
 				  color });
-			if(not(h[5])) then -- if the color is not limited to the extended palette only
-				table.insert( colormachine.dye_palette[ "unifieddyes_palette.png" ],
-					{ hue_nr, shade_nr, -1, "dye:"..val..hue,
-					  #colormachine.dye_palette[ "unifieddyes_palette.png" ]+1,
-					  color });
-			end
+			unifieddyes.color_string_lookup[ "dye:"..val..hue ] = color;
 		end
 		if minetest.registered_items["dye:"..val..hue] then
 			minetest.override_item("dye:"..val..hue, {
@@ -875,12 +897,7 @@ for hue_nr, h in ipairs(unifieddyes.HUES_EXTENDED) do
 					{ hue_nr, shade_nr+1,   -1, "dye:"..val..hue.."_s50",
 					  #colormachine.dye_palette[ "unifieddyes_palette_extended.png" ]+1,
 					  color });
-				if(not(h[5])) then -- if the color is not limited to the extended palette only
-					table.insert( colormachine.dye_palette[ "unifieddyes_palette.png" ],
-						{ hue_nr, shade_nr+1,   -1, "dye:"..val..hue.."_s50",
-						  #colormachine.dye_palette[ "unifieddyes_palette.png" ]+1,
-						  color });
-				end
+				unifieddyes.color_string_lookup[ "dye:"..val..hue.."_s50" ] = color;
 			end
 
 			minetest.register_craftitem(":dye:"..val..hue.."_s50", {
@@ -912,6 +929,74 @@ for y = 1, 14 do -- colors 0 and 15 are black and white, default dyes
 			on_use = unifieddyes.on_use
 		})
 		minetest.register_alias("unifieddyes:"..name, "dye:"..name)
+
+		if( colormachine and colormachine.dye_palette ) then
+			table.insert( colormachine.dye_palette[ "unifieddyes_palette_extended.png" ],
+					{     -1,         -1,  y+1, "dye:"..name,
+				  #colormachine.dye_palette[    "unifieddyes_palette_extended.png" ]+1,
+				  rgb });
+			unifieddyes.color_string_lookup[ "dye:"..name ] = rgb;
+			-- also add it to the 8-shades-of-grey-palette
+			table.insert( colormachine.dye_palette[ "unifieddyes_palette_greys.png" ],
+					{     -1,         -1,  y+1, "dye:"..name,
+				  #colormachine.dye_palette[    "unifieddyes_palette_greys.png" ]+1,
+				  rgb });
+			-- this 8-shades-of-grey-palette supports more types of grey shades than normal
+			table.insert( colormachine.dye_palette_grey_names[ "unifieddyes_palette_greys.png" ], name );
+		end
+	end
+end
+
+-- now add the normal palette - with the help of unifieddyes.color_string_lookup
+if( colormachine and colormachine.dye_palette ) then
+
+	-- the last color for the 8-shades-of-grey-palette is black
+	table.insert( colormachine.dye_palette_grey_names[ "unifieddyes_palette_greys.png" ], "black" );
+	table.insert( colormachine.dye_palette[            "unifieddyes_palette_greys.png" ],
+			{     -1,         -1,    8, "dye:black",
+			  #colormachine.dye_palette[    "unifieddyes_palette_greys.png" ]+1,
+			  "000000" });
+
+	local palette_normal = "unifieddyes_palette.png";
+	for hue_nr, hue in ipairs(unifieddyes.HUES) do
+		local shade_nr = 1;
+		-- also add a light_ variant to the 8-shades-of-one-color-palettes
+		local color_name = hue;
+		if(     color_name == "aqua" ) then
+			color_name = "spring";
+		elseif( color_name == "skyblue" ) then
+			color_name = "azure";
+		elseif( color_name == "redviolet") then
+			color_name = "rose";
+		end
+		local val = "light_";
+		local palette_hue = "unifieddyes_palette_"..hue.."s.png";
+		local dye_name    = "dye:"..val..color_name;
+		table.insert( colormachine.dye_palette[ palette_hue ],
+			{ hue_nr, 1,  -1, dye_name,
+			  #colormachine.dye_palette[    palette_hue ]+1,
+			  unifieddyes.color_string_lookup[ dye_name ] });
+		for i, val in ipairs(unifieddyes.VALS) do
+			dye_name    = "dye:"..val..color_name;
+			table.insert( colormachine.dye_palette[ palette_normal ],
+				{ hue_nr, shade_nr,  -1, dye_name,
+				  #colormachine.dye_palette[    palette_normal ]+1,
+				  unifieddyes.color_string_lookup[ dye_name ] });
+			table.insert( colormachine.dye_palette[ palette_normal ],
+				{ hue_nr, shade_nr+1,-1, dye_name.."_s50",
+				  #colormachine.dye_palette[    palette_normal ]+1,
+				  unifieddyes.color_string_lookup[ dye_name.."_s50" ] });
+			-- also add entries to the 8-shades-of-one-color-palettes
+			table.insert( colormachine.dye_palette[ palette_hue ],
+				{ hue_nr, shade_nr+2,-1, dye_name,
+				  #colormachine.dye_palette[    palette_hue ]+1,
+				  unifieddyes.color_string_lookup[ dye_name ] });
+			table.insert( colormachine.dye_palette[ palette_hue ],
+				{ hue_nr, shade_nr+3,-1, dye_name.."_s50",
+				  #colormachine.dye_palette[    palette_hue ]+1,
+				  unifieddyes.color_string_lookup[ dye_name.."_s50" ] });
+			shade_nr = shade_nr + 2;
+		end
 	end
 end
 
